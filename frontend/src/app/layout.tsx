@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <AuthProvider>
           <Header />
-          <main className="min-h-screen bg-background">
+          <main >
             {children}
           </main>
         </AuthProvider>
