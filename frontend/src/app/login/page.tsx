@@ -45,11 +45,11 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-full max-w-md space-y-8 p-8 bg-card rounded-lg shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-md space-y-8 p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
+          <p className="mt-2 text-sm text-gray-600">
             Please sign in to your account
           </p>
         </div>
@@ -67,7 +67,7 @@ const LoginPage: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
                 Username
               </label>
               <Input
@@ -77,13 +77,13 @@ const LoginPage: React.FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 placeholder="Enter your username"
-                className="w-full"
+                className="w-full bg-white border-gray-300"
                 aria-label="Username input"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-foreground mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Password
               </label>
               <Input
@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="w-full"
+                className="w-full bg-white border-gray-300"
                 aria-label="Password input"
               />
             </div>
@@ -102,7 +102,7 @@ const LoginPage: React.FC = () => {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             tabIndex={0}
             aria-label="Submit login form"
           >
@@ -110,8 +110,8 @@ const LoginPage: React.FC = () => {
           </Button>
 
           <div className="text-center text-sm">
-            <span className="text-muted-foreground">Don&apos;t have an account? </span>
-            <Link href="/signup" className="font-medium text-primary hover:text-primary/80">
+            <span className="text-gray-600">Don&apos;t have an account? </span>
+            <Link href="/signup" className="font-medium text-blue-600 hover:text-blue-500">
               Sign up
             </Link>
           </div>

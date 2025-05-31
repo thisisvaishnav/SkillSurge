@@ -16,22 +16,22 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="bg-white border-b shadow-sm">
+    <header className="bg-white shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <nav className="flex items-center justify-between">
-          <Link href="/" className="text-2xl font-bold text-black">
+          <Link href="/" className="text-2xl font-bold text-gray-900">
           LearnHub
           </Link>
 
           <div className='flex items-center gap-10'>
           <nav className="hidden md:flex space-x-8">
-              <a href="/admin" className="text-black hover:text-blue-600">
+              <a href="/admin" className="text-gray-700 hover:text-blue-600">
                 Courses
               </a>
-              <a href="#" className="text-black hover:text-blue-600">
+              <a href="#" className="text-gray-700 hover:text-blue-600">
                 About
               </a>
-              <a href="#" className="text-black hover:text-blue-600">
+              <a href="#" className="text-gray-700 hover:text-blue-600">
                 Contact
               </a>
             </nav>
@@ -41,15 +41,15 @@ const Header: React.FC = () => {
           <div className="flex items-center gap-4">
             {isLoggedIn ? (
               <>
-                <span className="text-sm text-black">
-                  Welcome, <span className="font-semibold text-black">{username}</span>
+                <span className="text-sm text-gray-700">
+                  Welcome, <span className="font-semibold text-gray-900">{username}</span>
                 </span>
                 <Button 
                   variant="outline" 
                   onClick={handleLogout}
                   tabIndex={0}
                   aria-label="Logout from account"
-                  className="text-black border-black hover:bg-gray-100"
+                  className="border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Logout
                 </Button>
@@ -61,7 +61,7 @@ const Header: React.FC = () => {
                     variant="ghost"
                     tabIndex={0}
                     aria-label="Navigate to login page"
-                    className="text-black hover:bg-gray-100"
+                    className="text-gray-700 hover:bg-gray-100"
                   >
                     Login
                   </Button>
