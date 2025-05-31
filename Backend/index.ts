@@ -26,7 +26,7 @@ mongoose.connect("mongodb+srv://vaishnavverma0:hr6CPmVq8VYhinCX@cluster0.la6e8nl
 const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  coursePurchased: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },
+  purchasedCourses: [{ type: mongoose.Schema.Types.ObjectId, ref: "Course" }]
 });
 
 const User = mongoose.model("User", userSchema);
@@ -46,6 +46,10 @@ const courseSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   image: { type: String, required: true },
   instructor: { type: String, required: true },
+  videos: [{ 
+    title: { type: String, required: true },
+    link: { type: String, required: true }
+  }]
 });
 
 const Course = mongoose.model("Course", courseSchema);
@@ -104,8 +108,8 @@ app.post("/admin/login", async (req: Request, res: Response) => {
 
 // Create course
 app.post("/admin/courses", authenticateJwt, async (req: AuthRequest, res: Response) => {
-  const { title, description, price, image, instructor } = req.body;
-  const course = new Course({ title, description, price, image, instructor });
+  const { title, description, price, image, instructor, videos } = req.body;
+  const course = new Course({ title, description, price, image, instructor, videos });
   await course.save();
   res.json({ message: "Course created successfully", courseId: course._id });
 });
@@ -123,7 +127,7 @@ app.post("/users/signup", async (req: Request, res: Response) => {
   if (existingUser) {
     res.status(403).json({ message: "User already exists" });
   } else {
-    const newUser = new User({ username, password });
+    const newUser = new User({ username, password, purchasedCourses: [] });
     await newUser.save();
     const token = jwt.sign({ username, role: "user" }, SECRET_KEY);
     res.json({ message: "User created successfully", token });
@@ -164,7 +168,11 @@ app.post("/users/courses/:courseId", authenticateJwt, async (req: AuthRequest, r
     return res.status(404).json({ message: "User not found" });
   }
 
-  user.coursePurchased = course._id;
+  if (user.purchasedCourses.includes(course._id)) {
+    return res.status(400).json({ message: "Course already purchased" });
+  }
+
+  user.purchasedCourses.push(course._id);
   await user.save();
   res.json({ message: "Course purchased successfully" });
 });
@@ -175,21 +183,32 @@ app.get("/users/courses", authenticateJwt, async (req: AuthRequest, res: Respons
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await User.findOne({ username: req.user.username }).populate("coursePurchased");
+  const user = await User.findOne({ username: req.user.username }).populate("purchasedCourses");
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
-  res.json({ purchasedCourse: user.coursePurchased });
+  res.json({ purchasedCourses: user.purchasedCourses });
 });
 
-app.get('/users/purchasedCourses', authenticateJwt, async (req: AuthRequest, res: Response) => {
+// Check if a user has purchased a specific course
+app.get('/users/hasPurchased/:courseId', authenticateJwt, async (req: AuthRequest, res: Response) => {
   if (!req.user) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
-  const user = await User.findOne({ username: req.user.username }).populate("coursePurchased");
-})
+  const user = await User.findOne({ username: req.user.username });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  // Convert the courseId string to ObjectId and check if it exists in the purchasedCourses array
+  const courseId = new mongoose.Types.ObjectId(req.params.courseId);
+  const hasPurchased = user.purchasedCourses.some((id) => id.equals(courseId));
+  
+  res.json({ hasPurchased });
+});
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -1,59 +1,155 @@
 'use client';
 
-// import { useAuth } from '@/context/AuthContext';
-// import Link from 'next/link';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CourseCard } from '@/components/coursecard';
 import { BookOpen } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
-const courses = [
-  {
-    id: 1,
-    title: "Complete Web Development Bootcamp",
-    description: "Learn HTML, CSS, JavaScript, React, and Node.js from scratch to build modern web applications.",
-    price: 99.99,
-    originalPrice: 199.99,
-    image: "/placeholder.svg?height=200&width=300",
-    instructor: "Sarah Johnson",
-    rating: 4.8,
-    students: 12543,
-    duration: "40 hours",
-    lessons: 156,
-    level: "Beginner to Advanced",
-  },
-  {
-    id: 2,
-    title: "Advanced React & TypeScript",
-    description: "Master advanced React patterns, TypeScript, state management, and modern development practices.",
-    price: 129.99,
-    originalPrice: 249.99,
-    image: "/placeholder.svg?height=200&width=300",
-    instructor: "Mike Chen",
-    rating: 4.9,
-    students: 8932,
-    duration: "32 hours",
-    lessons: 124,
-    level: "Intermediate to Advanced",
-  },
-  {
-    id: 3,
-    title: "Full-Stack Next.js Development",
-    description:
-      "Build production-ready applications with Next.js, including authentication, databases, and deployment.",
-    price: 149.99,
-    originalPrice: 299.99,
-    image: "/placeholder.svg?height=200&width=300",
-    instructor: "Alex Rodriguez",
-    rating: 4.7,
-    students: 6721,
-    duration: "45 hours",
-    lessons: 178,
-    level: "Intermediate",
-  },
-]
+// Define the video item interface
+interface VideoItem {
+  title: string;
+  link: string;
+}
+
+// Define the course interface to match what the CourseCard component expects
+interface CourseCardType {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  originalPrice: number;
+  image: string;
+  instructor: string;
+  rating: number;
+  students: number;
+  duration: string;
+  lessons: number;
+  level: string;
+  videos?: VideoItem[];
+  originalId: string; // Store the original MongoDB _id
+}
+
+// Define the API response structure
+interface ApiCourse {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  image: string;
+  instructor: string;
+  videos?: VideoItem[];
+  __v: number;
+}
+
+interface ApiResponse {
+  courses: ApiCourse[];
+}
 
 export default function Home() {
-  // const { isLoggedIn, username } = useAuth();
+  const { isLoggedIn, hasPurchased, purchaseCourse } = useAuth();
+  const [courses, setCourses] = useState<CourseCardType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [purchaseMessage, setPurchaseMessage] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'warning';
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch('http://localhost:3000/courses');
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch courses');
+        }
+        
+        const data: ApiResponse = await response.json();
+        
+        if (data.courses) {
+          // Transform API data to match the CourseCard component's expected format
+          const formattedCourses = data.courses.map((course) => {
+            // Check if the image URL is valid or use placeholder
+            // Using a placeholder for all images to avoid Next.js image domain issues
+            const imageUrl = "/placeholder.svg?height=200&width=300";
+            
+            return {
+              id: parseInt(course._id.substring(course._id.length - 6), 16), // Convert last 6 chars of _id to a number
+              title: course.title,
+              description: course.description,
+              price: course.price,
+              originalPrice: course.price * 1.5, // Calculate original price as 1.5x the actual price
+              image: imageUrl,
+              instructor: course.instructor,
+              rating: 4.5, // Default rating
+              students: Math.floor(Math.random() * 10000) + 1000, // Random student count
+              duration: "30 hours", // Default duration
+              lessons: course.videos?.length || Math.floor(Math.random() * 100) + 20, // Use video length or random
+              level: "Beginner", // Default level
+              videos: course.videos, // Include videos array
+              originalId: course._id // Store the original MongoDB _id
+            };
+          });
+          
+          setCourses(formattedCourses);
+        }
+      } catch (err) {
+        console.error('Failed to fetch courses:', err);
+        setError('Failed to load courses. Please try again later.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  const handlePurchase = async (courseId: number) => {
+    if (!isLoggedIn) {
+      setPurchaseMessage({
+        message: "Please log in to purchase this course",
+        type: "warning"
+      });
+      return;
+    }
+    
+    const course = courses.find(c => c.id === courseId);
+    if (!course) return;
+    
+    // Check if course is already purchased
+    if (hasPurchased(course.originalId)) {
+      // Open the course directly in the current tab
+      window.location.href = `/course/${course.originalId}`;
+      return;
+    }
+    
+    const success = await purchaseCourse(course.originalId);
+    
+    if (success) {
+      setPurchaseMessage({
+        message: `You have successfully purchased ${course.title}`,
+        type: "success"
+      });
+      
+      // Open the course page after successful purchase in the current tab
+      setTimeout(() => {
+        // Navigate to the course page directly
+        window.location.href = `/course/${course.originalId}`;
+      }, 1000);
+    } else {
+      setPurchaseMessage({
+        message: "There was a problem purchasing this course. Please try again.",
+        type: "error"
+      });
+    }
+    
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      setPurchaseMessage(null);
+    }, 3000);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 -mt-px">
@@ -86,6 +182,17 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Purchase Message */}
+      {purchaseMessage && (
+        <div className={`fixed top-4 right-4 p-4 rounded-md shadow-md z-50 ${
+          purchaseMessage.type === 'success' ? 'bg-green-100 text-green-800 border border-green-300' :
+          purchaseMessage.type === 'error' ? 'bg-red-100 text-red-800 border border-red-300' :
+          'bg-yellow-100 text-yellow-800 border border-yellow-300'
+        }`}>
+          {purchaseMessage.message}
+        </div>
+      )}
+
       {/* Stats Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,11 +224,36 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : error ? (
+            <div className="text-center py-10">
+              <p className="text-red-500">{error}</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                className="mt-4"
+              >
+                Try Again
+              </Button>
+            </div>
+          ) : courses.length === 0 ? (
+            <div className="text-center py-10">
+              <p className="text-gray-500">No courses available at the moment.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {courses.map((course) => (
+                <CourseCard 
+                  key={course.id} 
+                  course={course} 
+                  isPurchased={isLoggedIn && hasPurchased(course.originalId)}
+                  onPurchase={handlePurchase}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -202,11 +334,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-
-
-
-      
-
       </div>
   );
 }
