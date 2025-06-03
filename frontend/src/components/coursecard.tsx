@@ -36,16 +36,9 @@ export function CourseCard({ course, isPurchased = false, onPurchase }: CourseCa
   // Use the videos array length for lessons count if available
   const lessonCount = course.videos?.length || course.lessons;
   
-  // Function to handle clicking on course (purchase or open)
+  // Function to handle clicking on course
   const handleCourseAction = () => {
-    if (isPurchased) {
-      // If already purchased, navigate to the course page directly
-      window.location.href = `/course/${course.originalId || course.id}`;
-    } else if (onPurchase) {
-      // Otherwise attempt to purchase
-      onPurchase(course.id);
-    }
-  };
+      window.location.href = `/course/${course.originalId || course.id}`;};
   
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white gap-0.5 text-black border-0">
@@ -137,7 +130,7 @@ export function CourseCard({ course, isPurchased = false, onPurchase }: CourseCa
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 onClick={handleCourseAction}
               >
-                Purchase Course
+                Explore Courses 
               </Button>
             </>
           ) : (

@@ -62,6 +62,16 @@ export default function CoursePage() {
     type: 'success' | 'error' | 'warning' | 'info';
   } | null>(null)
   
+  const handleCourseAction = () => {
+    if (isPurchased) {
+      // If already purchased, navigate to the course page directly
+      window.location.href = `/course/${course.originalId || course.id}`;
+    } else if (onPurchase) {
+      // Otherwise attempt to purchase
+      onPurchase(course.id);
+    }
+  };
+
   // Use state for purchased status to allow dynamic updates without page reload
   const [isPurchased, setIsPurchased] = useState(false)
 
@@ -154,6 +164,7 @@ export default function CoursePage() {
       })
       return
     }
+
     
     if (!course) return
     
@@ -317,6 +328,7 @@ export default function CoursePage() {
                   </div>
                   <Button 
                     onClick={handlePurchase} 
+                    
                     className="w-full mb-4 bg-blue-600 hover:bg-blue-700 py-6 text-base font-medium"
                     disabled={isPurchasing}
                   >
