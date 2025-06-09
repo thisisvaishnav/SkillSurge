@@ -1,6 +1,6 @@
 # SkillSurge
 
-A full-stack web application built with Next.js frontend and Node.js/Express backend with MongoDB database.
+A full-stack web application built with Next.js frontend and Node.js/Express backend with MongoDB database. 
 
 ## 🚀 Tech Stack
 
